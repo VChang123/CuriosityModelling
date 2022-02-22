@@ -6,31 +6,35 @@ one sig Game {
     initialState: one State
 }
 
-abstract sig Player {
-    rightHand: one Int,
-    leftHand: one Int
-}
+abstract sig Player {}
 
-one sig Player1,Player2 extends Player{}
+one sig Player1, Player2 extends Player {}
 
 sig State {
     turnNumber: one Int,
-    player1: one Player1,
-    player2: one Player2,
+    leftHandP1: one Int,
+    rightHandP1: one Int,
+    leftHandP2: one Int,
+    rightHandP2: one Int,
+    // player1: one Player1,
+    // player2: one Player2,
     next : lone State
 }
 
 //--------------------------------------- PREDICATES -------------------------------------------//
 
 pred validStates {
-    // all s: State | all p: Player | (p.rightHand >= 0 or p.rightHand <= 4) and (p.leftHand >= 0 or p.leftHand <= 4)
+    all s: State | (s.rightHandP1 >= 0 and s.rightHandP1 <= 4) and (s.leftHandP1 >= 0 and s.leftHandP1 <= 4) and (s.rightHandP2 >= 0 and s.rightHandP2 <= 4) and (s.leftHandP2 >= 0 and s.leftHandP2 <= 4)
     
     all s1, s2: State | s2 = s1.next => s2.turnNumber = add[s1.turnNumber, 1]
 
 }
 pred initState[s: State] {
     s.turnNumber = 0
-    s.player1.rightHand = 1 and s.player1.leftHand = 1 and s.player2.rightHand = 1 and s.player2.leftHand = 1
+    s.rightHandP1 = 1 
+    s.leftHandP1 = 1 
+    s.rightHandP2 = 1 
+    s.leftHandP2 = 1 
     Game.initialState = s
 }
 
@@ -40,8 +44,8 @@ pred finalState[s: State] {
 }
 
 pred winningState[s: State]{
-    (s.player1.rightHand = 0 and s.player1.leftHand = 0) or 
-    (s.player2.rightHand = 0 and s.player2.leftHand = 0)
+    (s.rightHandP1 = 0 and s.leftHandP1 = 0) or 
+    (s.rightHandP2 = 0 and s.leftHandP2 = 0)
 }
 
 pred Player1Turn[s: State] {
@@ -54,31 +58,45 @@ pred Player2Turn[s: State] {
     // add[s.turnNumber, 1]
 }
 
-pred attack[attacker: Player, opponent: Player, s: State] {
-    (attacker = Player1 and opponent = Player2) implies Player1Turn[s]
-    (attacker = Player2 and opponent = Player1) implies Player2Turn[s]
+pred attack[pre: State, post: State] {
+    // (attacker = Player1 and opponent = Player2) implies Player1Turn[s]
+    // (attacker = Player2 and opponent = Player1) implies Player2Turn[s]
 
+    Player1Turn[pre] => {post.rightHandP2 = remainder[add[pre.rightHandP1, pre.rightHandP2], 5]} or
+                    {post.leftHandP2 = remainder[add[pre.rightHandP1, pre.leftHandP2], 5]} or
+                    {post.rightHandP2 = remainder[add[pre.leftHandP1, pre.rightHandP2], 5]} or 
+                    {post.leftHandP2 = remainder[add[pre.leftHandP1, pre.leftHandP2], 5]}
+    
+    Player2Turn[pre] => {post.rightHandP1 = remainder[add[pre.rightHandP2, pre.rightHandP1], 5]} or
+                    {post.leftHandP1 = remainder[add[pre.rightHandP2, pre.leftHandP1], 5]} or
+                    {post.rightHandP1 = remainder[add[pre.leftHandP2, pre.rightHandP1], 5]} or 
+                    {post.leftHandP1 = remainder[add[pre.leftHandP2, pre.leftHandP1], 5]}
     // (attacker.rightHand > attacker.leftHand) => {
     //     (opponent.rightHand > opponent.leftHand) =>{
-    //         opponent.leftHand = remainder[attacker.rightHand, opponent.leftHand]
+    //         opponent.leftHand = remainder[add[attacker.rightHand, opponent.leftHand], 5]
     //     } else {
-    //          opponent.rightHand = remainder[attacker.rightHand, opponent.rightHand]
+    //          opponent.rightHand = remainder[add[attacker.rightHand, opponent.rightHand], 5]
     //     }
     // } else {
     //     (opponent.rightHand > opponent.leftHand) =>{
-    //         opponent.leftHand = remainder[attacker.leftHand, opponent.leftHand]
+    //         opponent.leftHand = remainder[add[attacker.leftHand, opponent.leftHand], 5]
     //     } else {
-    //         opponent.rightHand = remainder[attacker.leftHand, opponent.rightHand]
+    //         opponent.rightHand = remainder[add[attacker.leftHand, opponent.rightHand], 5]
     //     }
     // }
 
     // opponent.leftHand = remainder[add[attacker.rightHand, opponent.leftHand], 5]
 }
 
-pred transfer[p: Player, s: State]{
-    p = Player1 implies Player1Turn[s]
-    p = Player2 implies Player2Turn[s]
+pred transfer[pre: State, post: Post]{
+    // p = Player1 implies Player1Turn[s]
+    // p = Player2 implies Player2Turn[s]
     
+    Player1Turn[pre] => {post.rightHandP1 = remainder[add[pre.rightHandP1, 1], 5] and post.leftHandP1 = subtract[pre.leftHandP1, 1]} or 
+                        {post.leftHandP1 = remainder[add[pre.leftHandP1, 1], 5] and post.rightHandP1 = subtract[pre.rightHandP1, 1]} or 
+    Player2Turn[pre] => {post.rightHandP2 = remainder[add[pre.rightHandP2, 1], 5] and post.leftHandP2 = subtract[pre.leftHandP2, 1]} or
+                        {post.leftHandP2 = remainder[add[pre.leftHandP2, 1], 5] and post.rightHandP2 = subtract[pre.rightHandP2, 1]}  
+
     // (p.rightHand > p.leftHand) => {
     //     p.leftHand = remainder[add[p.leftHand, 1], 5]
     //     p.rightHand = subtract[p.rightHand, 1]
@@ -90,22 +108,22 @@ pred transfer[p: Player, s: State]{
 
 pred canMove[pre: State, post: State] {
     remainder[pre.turnNumber, 2] != remainder[post.turnNumber, 2]
-
+    attack[ pre, post] or transfer[pre, post]
     // Player1's turn 
-    remainder[pre.turnNumber, 2] = 0 => {
-        // attacking
-        remainder[pre.turnNumber, 4] = 0 => { 
-            attack[pre.player1, pre.player2, pre]
-        } else { // transfer
-            transfer[pre.player1, pre]
-        }
-    } else {
-        remainder[pre.turnNumber, 4] = 1 => {
-            attack[pre.player2, pre.player1, pre]
-        } else { // transfer
-            transfer[pre.player2, pre]
-        }
-    }
+    // remainder[pre.turnNumber, 2] = 0 => {
+    //     // attacking
+    //     //remainder[pre.turnNumber, 4] = 0 => { 
+       
+    //     //} else { // transfer
+            
+    //     //}
+    // } else {
+    //     //remainder[pre.turnNumber, 4] = 1 => {
+    //         attack[pre.player2, pre.player1, pre]
+    //     } else { // transfer
+    //         transfer[pre.player2, pre]
+    //     }
+    // }
     // for player 1: if turn number mod 4 = 0, attack; otherwise transfer
     // if attacking: 
     // the values on at least one of the opponent's hands should change
@@ -146,5 +164,5 @@ run {
     validStates
     transitionStates
     // winningState
-} for 6 State, exactly 2 Player, exactly 1 Player1, exactly 1 Player2
+} for 9 State
 for {next is linear}
