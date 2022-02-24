@@ -48,6 +48,14 @@ pred winningState[s: State]{
     (s.rightHandP2 = 0 and s.leftHandP2 = 0)
 }
 
+pred doNothing[pre: State, post: State] {
+    winningState[pre]
+    pre.rightHandP1 = post.rightHandP1
+    pre.leftHandP1 = post.leftHandP1
+    pre.rightHandP2 = post.rightHandP2
+    pre.leftHandP2 = post.leftHandP2
+}
+
 pred Player1Turn[s: State] {
     remainder[s.turnNumber, 2] = 0
     // add[s.turnNumber, 1]
@@ -139,10 +147,10 @@ pred transitionStates{
 
         all s: State | (s != init) implies (s.next != init)
 
-        finalState[final]
-        reachable[final, init, next]
+        // finalState[final]
+        // reachable[final, init, next]
         -- valid transitions
-        all s: State | some s.next => canMove[s, s.next]
+        all s: State | some s.next => canMove[s, s.next] or doNothing[s, s.next]
     }
 }
 
