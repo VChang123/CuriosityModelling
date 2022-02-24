@@ -162,22 +162,117 @@ test expect {
 //     next : lone State
 // }
 // initial state
-example validInitialState is initState for {
-    State = `S0
-    turnNumber = `S0 -> 0
-}
+// example validInitialState is initState for {
+//     State = `S0
+//     turnNumber = `S0 -> 0
+// }
 
 // winning state
+example isWinningState is {some s: State | winningState[s]} for {
+    State = `S5
+    
+    turnNumber = `S5 -> 5
+    leftHandP1 = `S5-> 0 
+    rightHandP1 = `S5-> 0 
+    leftHandP2 = `S5-> 1 
+    rightHandP2 = `S5-> 1
+    
+
+}
+example isNotWinningState is not {some s: State | winningState[s]} for {
+    State = `S5
+    
+    turnNumber = `S5 -> 5
+    leftHandP1 = `S5-> 2
+    rightHandP1 = `S5-> 3 
+    leftHandP2 = `S5-> 1 
+    rightHandP2 = `S5-> 1
+    
+
+}
 
 // transitions 
 
 // valid state
 
+example isValidState is validStates for  {
+    State = `S0 
+
+    turnNumber = `S0 -> 0
+    leftHandP1 = `S0-> 2
+    rightHandP1 = `S0-> 2
+    leftHandP2 = `S0-> 1 
+    rightHandP2 = `S0-> 1 
+  
+}
+//missing right hand
+example isNotValidState is not validStates for  {
+    State = `S0 
+    turnNumber = `S0 -> 0 
+    leftHandP1 = `S0-> 1 
+    rightHandP1 = `S0-> 3
+    leftHandP2 = `S0-> 1
+    rightHandP2 = `S0 ->7
+   
+}
+
+//negative numbers for the count on the hands
+example isNotValidState2 is not validStates for  {
+    State = `S0 
+    turnNumber = `S0 -> 0 
+    leftHandP1 = `S0-> 1 
+    rightHandP1 = `S0-> -1 
+    leftHandP2 = `S0-> 5 
+    rightHandP2 = `S0-> 1  
+    
+}
 // attack 
 
 // transfer
 
-// can move
+example validTransfer is {some pre, post : State | transfer[pre, post]} for  {
+    State = `S0 + `S1
+    turnNumber = `S0 -> 0 + `S1 -> 1
+    next = `S0 -> `S1
+    leftHandP1 = `S0-> 1  + `S1 -> 2
+    rightHandP1 = `S0-> 1 + `S1 -> 0
+    leftHandP2 = `S0-> 1 + `S1 -> 1
+    rightHandP2 = `S0-> 1 + `S1 -> 1
+}
+
+//transferred more than 1
+example invalidTransfer is not {some pre, post : State | transfer[pre, post]} for {
+    State = `S0 + `S1
+    turnNumber = `S0 -> 0 + `S1 -> 1
+    next = `S0 -> `S1
+    leftHandP1 = `S0-> 1  + `S1 -> 3
+    rightHandP1 = `S0-> 1 + `S1 -> 0
+    leftHandP2 = `S0-> 1 + `S1 -> 1
+    rightHandP2 = `S0-> 1 + `S1 -> 1
+}
+
+//both hands transfer
+example invalidTransfer2 is not {some pre, post : State | transfer[pre, post]} for {
+    State = `S0 + `S1
+    turnNumber = `S0 -> 0 + `S1 -> 1
+    next = `S0 -> `S1
+    leftHandP1 = `S0-> 1  + `S1 -> 2
+    rightHandP1 = `S0-> 1 + `S1 -> 0
+    leftHandP2 = `S0-> 1 + `S1 -> 2
+    rightHandP2 = `S0-> 1 + `S1 -> 0
+}
+
+//did not subtract properly
+example invalidTransfer3 is not {some pre, post : State | transfer[pre, post]} for {
+    State = `S0 + `S1
+    turnNumber = `S0 -> 0 + `S1 -> 1
+    next = `S0 -> `S1
+    leftHandP1 = `S0-> 1  + `S1 -> 2
+    rightHandP1 = `S0-> 1 + `S1 -> 1
+    leftHandP2 = `S0-> 1 + `S1 -> 1
+    rightHandP2 = `S0-> 1 + `S1 -> 1
+}
+
 
 run {
     validStates
