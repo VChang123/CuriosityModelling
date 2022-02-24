@@ -162,22 +162,89 @@ test expect {
 //     next : lone State
 // }
 // initial state
-example validInitialState is initState for {
-    State = `S0
+example validInitialState is {some s: State | initState[s]} for {
+    State = `S0 
+
     turnNumber = `S0 -> 0
+    leftHandP1 = `S0 -> 1
+    rightHandP1 = `S0 -> 1
+    leftHandP2 = `S0 -> 1
+    rightHandP2 = `S0 -> 1
+}
+
+example invalidInitialStateBadTurnNumber is {some s: State | not initState[s]} for {
+    State = `S0 
+
+    turnNumber = `S0 -> 1
+    leftHandP1 = `S0 -> 1
+    rightHandP1 = `S0 -> 1
+    leftHandP2 = `S0 -> 1
+    rightHandP2 = `S0 -> 1
+}
+
+example invalidInitialStateInitialHand is {some s: State | not initState[s]} for {
+    State = `S0 
+
+    turnNumber = `S0 -> 1
+    leftHandP1 = `S0 -> 1
+    rightHandP1 = `S0 -> 2
+    leftHandP2 = `S0 -> 1
+    rightHandP2 = `S0 -> 1
 }
 
 // winning state
 
 // transitions 
+example invalidCanMove is {some disj s1, s2: State | not canMove[s1, s2]} for {
+    State = `S0 + `S1
+    next = `S0 -> `S1
+
+    turnNumber = `S0 -> 1 + `S1 -> 1
+    leftHandP1 = `S0 -> 1 + `S1 -> 2
+    rightHandP1 = `S0 -> 2 + `S1 -> 2
+    leftHandP2 = `S0 -> 1 + `S1 -> 2
+    rightHandP2 = `S0 -> 1 + `S1 -> 2
+}
+
 
 // valid state
 
 // attack 
+example validAttack is {some disj s1, s2: State | attack[s1, s2]} for {
+    State = `S0 + `S1
+    next = `S0 -> `S1
+
+    turnNumber = `S0 -> 0 + `S1 -> 1
+    leftHandP1 = `S0 -> 1 + `S1 -> 1
+    rightHandP1 = `S0 -> 1 + `S1 -> 1
+    leftHandP2 = `S0 -> 1 + `S1 -> 2
+    rightHandP2 = `S0 -> 1 + `S1 -> 1
+}
+
+example invalidAttackWrongAddition is {some disj s1, s2: State | not attack[s1, s2]} for {
+    State = `S0 + `S1
+    next = `S0 -> `S1
+
+    turnNumber = `S0 -> 0 + `S1 -> 1
+    leftHandP1 = `S0 -> 1 + `S1 -> 1
+    rightHandP1 = `S0 -> 1 + `S1 -> 1
+    leftHandP2 = `S0 -> 1 + `S1 -> 3
+    rightHandP2 = `S0 -> 1 + `S1 -> 1
+}
+
+example invalidAttackAttackerChanges is {some disj s1, s2: State | not attack[s1, s2]} for {
+    State = `S0 + `S1
+    next = `S0 -> `S1
+
+    turnNumber = `S0 -> 0 + `S1 -> 1
+    leftHandP1 = `S0 -> 1 + `S1 -> 2
+    rightHandP1 = `S0 -> 1 + `S1 -> 1
+    leftHandP2 = `S0 -> 1 + `S1 -> 2
+    rightHandP2 = `S0 -> 1 + `S1 -> 1
+}
 
 // transfer
 
-// can move
 
 run {
     validStates
