@@ -19,20 +19,20 @@ At a high level, what do each of your sigs and preds represent in the context of
 The sigs are Game, Player, Player1, Player2, and State. The Game sig represents the game, and has an initial state. Player1 and Player2 extend Player, and are the two players in the game. State represents every turn of the game, and State is linear. The State keeps track of the turn number, the amounts on each player's hand, and the next state. 
 
 #### Predicates
-validState: ensures that the the state is valid, and that the hands are well formed. 
+`validState`: ensures that the the state is valid, and that the hands are well formed. 
 
-initState: initializes the values of each hand, and sets the initial state of the game
+`initState`: initializes the values of each hand, and sets the initial state of the game
 
-winningState: checks to see if a player has won
+`winningState`: checks to see if a player has won
 
-doNothing: if the pre state is a winningState, then the post state will be the same as the pre state
+`doNothing`: if the pre state is a winningState, then the post state will be the same as the pre state
 
-Player1Turn/Player2Turn: checks if it is the player's turn 
+`Player1Turn`/`Player2Turn``: checks if it is the player's turn 
 
-attack/transfer: allows the player to make a move if it is their turn
+`attack`/`transfer`: allows the player to make a move if it is their turn
 
-canMove: allows the player to attack or transfer if it is not the winning state and if the turn number is valid
+`canMove`: allows the player to attack or transfer if it is not the winning state and if the turn number is valid
 
-transitionStates: sets up the initial state and transition states
+`transitionStates`: sets up the initial state and transition states
 
 
