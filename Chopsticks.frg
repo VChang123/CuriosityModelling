@@ -1,4 +1,4 @@
-#lang forge/bsl "cm" "anonymous ID"
+#lang forge/bsl "cm" "driczu0hkuc0d2d9"
 //DUE MARCH 3rd
 
 /*
@@ -175,20 +175,62 @@ pred transitionStates{
 
 //------------------------------------- TESTING/EXAMPLES--------------------------------//
 
-test expect {
+// Hand values below 0 or above 4
+pred InvalidChangeTrace {
+    validStates
+    transitionStates
 
+    some cur: State {
+        cur.leftHandP1 > 4 or
+        cur.leftHandP1 > 4 or
+        cur.rightHandP2 > 4 or 
+        cur.rightHandP2 > 4 or
+        cur.leftHandP1 < 0 or
+        cur.leftHandP1 < 0 or
+        cur.rightHandP2 < 0 or 
+        cur.rightHandP2 < 0
+    }
+}
+
+// Both of Player 2's hands change when it is Player 1's turn
+pred InvalidMoveTrace2 { 
+    validStates 
+    transitionStates
+
+    some init, final, nxt: State {
+        initState[init]
+
+        all s: State | (s != init) implies (s.next != init)
+
+        init.next = nxt 
+
+        init.rightHandP2 != nxt.rightHandP2 and init.leftHandP2 != nxt.leftHandP2
+    }
+}
+
+// Both of Player 1's hands change when it is Player 2's turn
+pred InvalidMoveTrace1 { 
+    validStates 
+    transitionStates
+
+    some cur, nxt: State {
+        cur.next = nxt 
+        not winningState[cur]
+        Player2Turn[cur]
+
+        cur.rightHandP1 != nxt.rightHandP1 and cur.leftHandP2 != nxt.leftHandP2
+    }
+}
+
+test expect {
+    empty: {} is sat
+    invalidChange: {InvalidChangeTrace} is unsat
+    invalidMove1: {InvalidMoveTrace1} is unsat
+    invalidMove2: {InvalidMoveTrace2} is unsat
 }
 
 //examples for the move, state, different attacks
 
-// sig State {
-//     turnNumber: one Int,
-//     leftHandP1: one Int,
-//     rightHandP1: one Int,
-//     leftHandP2: one Int,
-//     rightHandP2: one Int,
-//     next : lone State
-// }
 // initial state
 example validInitialState is {some s: State | initState[s]} for {
     State = `S0 
@@ -200,6 +242,7 @@ example validInitialState is {some s: State | initState[s]} for {
     rightHandP2 = `S0 -> 1
 }
 
+// incorrect turn number for the initial state
 example invalidInitialStateBadTurnNumber is {some s: State | not initState[s]} for {
     State = `S0 
 
@@ -210,6 +253,7 @@ example invalidInitialStateBadTurnNumber is {some s: State | not initState[s]} f
     rightHandP2 = `S0 -> 1
 }
 
+// hand value incorrect for the initial state
 example invalidInitialStateInitialHand is {some s: State | not initState[s]} for {
     State = `S0 
 
@@ -232,6 +276,8 @@ example isWinningState is {some s: State | winningState[s]} for {
     
 
 }
+
+// not the winning state if no hands are dead
 example isNotWinningState is not {some s: State | winningState[s]} for {
     State = `S5
     
@@ -258,7 +304,6 @@ example invalidCanMove is {some disj s1, s2: State | not canMove[s1, s2]} for {
 
 
 // valid state
-
 example isValidState is validStates for  {
     State = `S0 
 
@@ -325,7 +370,6 @@ example invalidAttackAttackerChanges is {some disj s1, s2: State | not attack[s1
 }
 
 // transfer
-
 example validTransfer is {some pre, post : State | transfer[pre, post]} for  {
     State = `S0 + `S1
     turnNumber = `S0 -> 0 + `S1 -> 1
